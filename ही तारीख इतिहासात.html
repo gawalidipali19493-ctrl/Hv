@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ही तारीख इतिहासात</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#fff8ef;--card:#ffffff;--tx:#2b2118;--mut:#7a6a5a;--ac:#d9480f;--ac2:#f59f00;--bd:#f0e2cf}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17120d;--card:#231b14;--tx:#f5ebdd;--mut:#b5a590;--ac:#ff8a4c;--ac2:#ffc247;--bd:#3a2e22}}
+:root[data-theme="dark"]{--bg:#17120d;--card:#231b14;--tx:#f5ebdd;--mut:#b5a590;--ac:#ff8a4c;--ac2:#ffc247;--bd:#3a2e22}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:"Noto Sans Devanagari","Mukta",system-ui,sans-serif;line-height:1.6}
+.w{max-width:640px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:1.7rem;margin:8px 0 4px;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--mut);margin:0 0 18px}
+.box{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:16px;box-shadow:0 4px 18px rgba(0,0,0,.06)}
+.row{display:flex;gap:8px}
+select,input{flex:1;min-width:0;font:inherit;padding:12px;border-radius:12px;border:1px solid var(--bd);background:var(--bg);color:var(--tx)}
+label{display:block;font-size:.8rem;color:var(--mut);margin:0 0 4px}
+.f{flex:1;min-width:0}
+button{width:100%;margin-top:14px;font:inherit;font-weight:700;font-size:1.05rem;padding:14px;border:0;border-radius:14px;color:#fff;background:linear-gradient(90deg,var(--ac),#e8590c);cursor:pointer}
+button:disabled{opacity:.6}
+.err{color:#e03131;margin-top:10px}
+.sec{margin-top:18px}
+.sec h2{font-size:1.1rem;margin:0 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:8px 12px}
+.chip b{color:var(--ac)}
+.it{display:flex;gap:12px;background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px;margin-bottom:8px}
+.yr{flex:0 0 auto;min-width:62px;text-align:center;font-weight:800;color:var(--ac);font-size:1.05rem}
+.ld{color:var(--mut);margin-top:16px;text-align:center}
+.note{font-size:.8rem;color:var(--mut);margin-top:20px;text-align:center}
+.lk{position:fixed;inset:0;z-index:99;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:calc(20px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px))}
+.lkb{text-align:center;width:100%;max-width:320px}
+.lkb input{width:100%;text-align:center;letter-spacing:.3em;font-size:1.3rem}
+</style>
+</head>
+<body>
+<div id="lock" class="lk"><div class="lkb"><div style="font-size:3rem">🔒</div><h1>ॲप लॉक आहे</h1><p class="sub">कोड टाका</p><input id="pin" type="password" inputmode="numeric" autocomplete="off" placeholder="••••"><button id="ubtn">उघडा 🔓</button><div id="lerr" class="err"></div></div></div>
+<div class="w" id="app" style="display:none">
+<h1>📅 ही तारीख इतिहासात</h1>
+<p class="sub">तुमची किंवा कोणाचीही जन्मतारीख टाका – त्या दिवशी जगात काय घडलं ते पाहा.</p>
+<div class="box">
+<label for="n">नाव (मराठीत लिहिल्यास रास अचूक येते)</label><input id="n" type="text" placeholder="उदा. दिपाली" style="width:100%;margin-bottom:12px">
+<div class="row">
+<div class="f"><label for="d">दिवस</label><select id="d"></select></div>
+<div class="f"><label for="m">महिना</label><select id="m"></select></div>
+<div class="f"><label for="y">वर्ष (ऐच्छिक)</label><input id="y" type="number" inputmode="numeric" placeholder="उदा. 2012" min="1" max="2100"></div>
+</div>
+<button id="go">शोधा 🔍</button>
+<div id="err" class="err"></div>
+</div>
+<div id="out"></div>
+<p class="note">मजकूर AI ने तयार केला आहे; महत्त्वाच्या तारखा/वर्षे कृपया पुन्हा तपासून घ्या.</p>
+</div>
+<script>
+const M=["जानेवारी","फेब्रुवारी","मार्च","एप्रिल","मे","जून","जुलै","ऑगस्ट","सप्टेंबर","ऑक्टोबर","नोव्हेंबर","डिसेंबर"];
+const W=["रविवार","सोमवार","मंगळवार","बुधवार","गुरुवार","शुक्रवार","शनिवार"];
+const Z=[[1,20,"मकर"],[2,19,"कुंभ"],[3,20,"मीन"],[4,20,"मेष"],[5,21,"वृषभ"],[6,21,"मिथुन"],[7,23,"कर्क"],[8,23,"सिंह"],[9,23,"कन्या"],[10,23,"तुळ"],[11,22,"वृश्चिक"],[12,22,"धनु"],[13,32,"मकर"]];
+const $=id=>document.getElementById(id);
+const H='5e08de56eb654c56eb50e99f868b7fc30192f46cdcc294266a48f59c5fcd232a';
+async function sha(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');}
+async function unlock(){
+  let ok=false;
+  try{ok=(await sha($('pin').value.trim()))===H;}catch(e){ok=false;}
+  if(ok){$('lock').style.display='none';$('app').style.display='block';}
+  else{$('lerr').textContent='चुकीचा कोड, पुन्हा प्रयत्न करा.';$('pin').value='';}
+}
+$('ubtn').onclick=unlock;
+$('pin').addEventListener('keydown',e=>{if(e.key==='Enter')unlock();});
+const d=$("d"),m=$("m");
+for(let i=1;i<=31;i++)d.add(new Option(i,i));
+M.forEach((n,i)=>m.add(new Option(n,i+1)));
+const t=new Date();d.value=t.getDate();m.value=t.getMonth()+1;
+
+function zodiac(day,mon){const v=mon*100+day;const lim=[[120,"मकर"],[219,"कुंभ"],[320,"मीन"],[420,"मेष"],[521,"वृषभ"],[621,"मिथुन"],[723,"कर्क"],[823,"सिंह"],[923,"कन्या"],[1023,"तुळ"],[1122,"वृश्चिक"],[1222,"धनु"]];for(const[l,n]of lim)if(v<l)return n;return "मकर";}
+function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+function section(title,items){
+  if(!Array.isArray(items)||!items.length)return null;
+  const s=el("div","sec");s.appendChild(el("h2",null,title));
+  items.forEach(x=>{const r=el("div","it");r.appendChild(el("div","yr",String(x.varsh||x.year||"")));r.appendChild(el("div",null,String(x.mahiti||x.text||"")));s.appendChild(r);});
+  return s;
+}
+const RS={'मेष':'चू चे चो ला ली लू ले लो अ आ','वृषभ':'इ ई उ ऊ ए ओ वा वी वू वे वो ब','मिथुन':'का की कू के को हा घ छ','कर्क':'ही हू हे हो डा डी डू डे डो','सिंह':'मा मी मू मे मो टा टी टू टे','कन्या':'ढो पा पी पू पे पो ष ण ठ','तूळ':'रा री रू रे रो ता ती तू ते','वृश्चिक':'तो ना नी नू ने नो या यी यू','धनु':'ये यो भा भी भू धा फा ढा भे','मकर':'भो जा जी खी खू खे खो गा गी','कुंभ':'गू गे गो सा सी सू से सो दा','मीन':'दी दू थ झ ञ दे दो चा ची'};
+const LT={a:'मेष',b:'वृषभ',c:'मेष',d:'मीन',e:'वृषभ',f:'धनु',g:'मकर',h:'मिथुन',i:'वृषभ',j:'मकर',k:'मिथुन',l:'मेष',m:'सिंह',n:'वृश्चिक',o:'वृषभ',p:'कन्या',q:'मिथुन',r:'तूळ',s:'कुंभ',t:'तूळ',u:'वृषभ',v:'वृषभ',w:'वृषभ',x:'कन्या',y:'वृश्चिक',z:'मीन'};
+function nameRashi(nm){
+  if(!nm)return '';
+  const ch=[...nm.trim()];const f=ch[0]||'';
+  if(/[a-z]/i.test(f))return LT[f.toLowerCase()]||'';
+  const MT={'ा':'ा','ि':'ी','ी':'ी','ु':'ू','ू':'ू','े':'े','ै':'े','ो':'ो','ौ':'ो'};
+  let syl=f;const nx=ch[1];
+  if(nx&&MT[nx])syl=f+MT[nx];
+  const L=Object.entries(RS);
+  for(const[r,s]of L)if(s.split(' ').includes(syl))return r;
+  for(const[r,s]of L)if(s.split(' ').some(x=>x[0]===f))return r;
+  return '';
+}
+function personal(day,mon,yr,name){
+  const box=el("div","sec");box.appendChild(el("h2",null,name?"✨ "+name+", तुमची माहिती":"✨ तुमच्या तारखेबद्दल"));
+  const c=el("div","chips");
+  const add=(a,b)=>{const ch=el("div","chip");ch.append(a+" ");ch.appendChild(el("b",null,b));c.appendChild(ch);};
+  const nr=nameRashi(name);
+  if(nr)add("रास (नावावरून):",nr);
+  add("सूर्यराशी (जन्मतारखेवरून):",zodiac(day,mon));
+  if(yr){
+    const dt=new Date(yr,mon-1,day);dt.setFullYear(yr);
+    add("जन्मवार:",W[dt.getDay()]);
+    const now=new Date();let age=now.getFullYear()-yr;
+    if(now<new Date(now.getFullYear(),mon-1,day))age--;
+    if(age>=0)add("वय:",age+" वर्षे");
+  }
+  const n=new Date();let nb=new Date(n.getFullYear(),mon-1,day);
+  if(nb<new Date(n.getFullYear(),n.getMonth(),n.getDate()))nb=new Date(n.getFullYear()+1,mon-1,day);
+  const left=Math.round((nb-new Date(n.getFullYear(),n.getMonth(),n.getDate()))/864e5);
+  add("पुढचा वाढदिवस:",left===0?"आज! 🎉":left+" दिवसांनी");
+  const h=(day*31+mon*17+(yr||0)*7)%3;
+  const R=[["लव्ह मॅरेज 💕","मनापासून आवडलेल्या व्यक्तीशी लग्नाची गोष्ट रंगेल!"],["अरेंज मॅरेज 💍","घरच्यांच्या पसंतीने लग्नाची गोष्ट जुळेल!"],["लव्ह + अरेंज दोन्ही 💞","आधी ओळख, मग घरच्यांची संमती – दोन्हींचा गोड मेळ!"]][h];
+  add("मजेशीर अंदाज:",R[0]);
+  box.appendChild(c);
+  box.appendChild(el("div","note","🎈 "+R[1]+" हा फक्त गंमतीचा खेळ आहे – खरं भविष्य कोणालाच सांगता येत नाही. लग्नाचा निर्णय पुढे मोठेपणी तुम्हीच घ्याल!"));
+  return box;
+}
+$("go").onclick=async()=>{
+  const day=+d.value,mon=+m.value,yrRaw=$("y").value.trim();
+  const yr=yrRaw?+yrRaw:null;
+  const err=$("err"),out=$("out");err.textContent="";out.textContent="";
+  const test=new Date(2024,mon-1,day);
+  if(test.getMonth()!==mon-1){err.textContent="ही तारीख अस्तित्वात नाही. कृपया दिवस/महिना तपासा.";return;}
+  if(yr&&(yr<1||yr>t.getFullYear())){err.textContent="कृपया योग्य वर्ष टाका.";return;}
+  out.appendChild(personal(day,mon,yr,$("n").value.trim()));
+  const ld=el("div","ld","⏳ इतिहास शोधत आहे…");out.appendChild(ld);
+  $("go").disabled=true;
+  try{
+    const sample=await claude.use("sample");
+    if(!sample)throw new Error("na");
+    const prompt=`तारीख: ${day} ${M[mon-1]}${yr?`. वर्ष: ${yr}`:""}.
+या तारखेला (दरवर्षी ${day} ${M[mon-1]} रोजी) इतिहासात घडलेल्या खऱ्या, प्रसिद्ध घटना मराठीत सांग.
+फक्त JSON दे, इतर काहीही नको, backticks नकोत. रचना:
+{"ghatana":[{"varsh":1947,"mahiti":"एक-दोन वाक्ये"}],"aapatti":[...],"bharat":[...],"janm":[...],"mrutyu":[...]${yr?`,"tya_varshi":[...]`:""}}
+ghatana = जगातील महत्त्वाच्या घटना (६); aapatti = युद्धे, भूकंप, दुर्घटना, आपत्ती, मोठे नुकसान (४); bharat = भारत/महाराष्ट्राशी संबंधित घटना (४); janm = प्रसिद्ध व्यक्तींचा जन्म (५); mrutyu = प्रसिद्ध व्यक्तींचे निधन (३);${yr?` tya_varshi = ${yr} या वर्षी जगात घडलेल्या ५ मोठ्या घटना (कोणत्याही तारखेच्या, varsh मध्ये ${yr}).`:""}
+नियम: फक्त खात्रीच्या घटना द्या, काहीही बनवू नका; एखादी श्रेणी खात्रीशीर नसेल तर रिकामी यादी []; वर्षे अंकांत; मराठी भाषा सोपी ठेवा.`;
+    const r=await sample.json(prompt,{modelTier:"default"});
+    ld.remove();
+    const parts=[["📜 जगातील घटना",r.ghatana],["⚠️ युद्धे, आपत्ती आणि नुकसान",r.aapatti],["🇮🇳 भारत / महाराष्ट्र",r.bharat],["🎂 या दिवशी जन्मलेले",r.janm],["🕯️ या दिवशी निधन",r.mrutyu]];
+    if(yr)parts.push([`🗓️ ${yr} साली जगात`,r.tya_varshi]);
+    let any=false;
+    parts.forEach(([ti,it])=>{const s=section(ti,it);if(s){out.appendChild(s);any=true;}});
+    if(!any)out.appendChild(el("div","ld","या तारखेची माहिती मिळाली नाही. पुन्हा प्रयत्न करा."));
+  }catch(e){
+    ld.remove();
+    const code=e&&e.code;
+    err.textContent=code==="not_granted"?"माहिती आणण्यासाठी परवानगी द्यावी लागेल. पुन्हा 'शोधा' दाबून परवानगी द्या.":code==="rate_limited"?"थोड्या वेळाने पुन्हा प्रयत्न करा.":"माहिती आणता आली नाही. कृपया पुन्हा प्रयत्न करा.";
+  }
+  $("go").disabled=false;
+};
+</script>
+</body>
+</html>
